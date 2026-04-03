@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from enum import Enum
 
 # ── Student models ───────────────────────────────
 class StudentModel(BaseModel):
@@ -16,11 +17,17 @@ class UpdateStudentModel(BaseModel):
     course: Optional[str] = None
     grade: Optional[str] = None
 
+# ── Role enum ────────────────────────────────────
+class RoleEnum(str, Enum):
+    admin = "admin"
+    user = "user"
+
 # ── Auth models ──────────────────────────────────
 class RegisterModel(BaseModel):
     username: str
     email: str
     password: str
+    role: RoleEnum = RoleEnum.user 
 
 class LoginModel(BaseModel):
     email: str

@@ -50,5 +50,19 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     return {
         "id": str(user["_id"]),
         "username": user["username"],
-        "email": user["email"]
+        "email": user["email"],
+        "role": user["role"]
     }
+def require_role(*roles:str):
+    def role_checker(current_user: dict = Depends(get_current_user)):
+        if current_user["role"] not in roles:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Access denied. Required role: {list(roles)}"
+            )
+        return current_user
+    return role_checker
+
+# ── Shortcut dependencies ────────────────────────
+require_admin = require_role("admin")
+require_user  = require_role("admin", "user")   # both can access
