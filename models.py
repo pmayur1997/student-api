@@ -22,6 +22,19 @@ class RoleEnum(str, Enum):
     admin = "admin"
     user = "user"
 
+# ── Pagination Model ──────────────────────────────────
+class PaginationParam(BaseModel):
+    page: int = 1
+    per_page: int = 10
+
+# ── Filter Model ──────────────────────────────────
+class StudentFilter(BaseModel):
+    course:  Optional[str] = None
+    grade:   Optional[str] = None
+    min_age: Optional[int] = None
+    max_age: Optional[int] = None
+    search:  Optional[str] = None    # search by name or email
+
 # ── Auth models ──────────────────────────────────
 class RegisterModel(BaseModel):
     username: str

@@ -1,18 +1,25 @@
 # Student Management API
-
-A REST API built with FastAPI, MongoDB, and JWT Authentication.
+A production-grade REST API built with FastAPI and MongoDB featuring JWT Authentication, Role Based Access Control, Pagination, and Filtering.
 
 ## Features
-- JWT Authentication (Access + Refresh Tokens)
+- JWT Authentication (AccessTokens)
 - Role Based Access Control (Admin & User)
 - Full CRUD for Students
-- Search by Course
+- Pagination & Filtering
+- Sorting & Search
+- Active User Check
+- Error Handling
 
 ## Tech Stack
-- Python
-- FastAPI
-- MongoDB
-- JWT
+| Technology | Purpose |
+|------------|---------|
+| Python     | Programming language |
+| FastAPI    | Web framework |
+| MongoDB    | Database |
+| PyJWT      | JWT token generation |
+| Bcrypt     | Password hashing |
+| Pydantic   | Data validation |
+| Python Dotenv | Environment variables |
 
 ## Installation
 
@@ -41,7 +48,7 @@ A REST API built with FastAPI, MongoDB, and JWT Authentication.
 
 ## API Endpoints
 
-### Auth
+### Auth Routes
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | /api/v1/auth/register | Register user |
@@ -49,12 +56,93 @@ A REST API built with FastAPI, MongoDB, and JWT Authentication.
 | POST | /api/v1/auth/logout | Logout user |
 | GET  | /api/v1/auth/me | Get profile |
 
-### Students
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/v1/students | Get all students |
-| GET | /api/v1/students/{id} | Get single student |
-| POST | /api/v1/students | Create student |
-| PUT | /api/v1/students/{id} | Update student |
-| DELETE | /api/v1/students/{id} | Delete student |
-| GET | /api/v1/students/search/{course} | Search by course |
+
+### Student Routes (Protected)
+
+| Method | Endpoint | Role | Description |
+|---|---|---|---|
+| GET | `/api/v1/students` | Admin, User | Get all students |
+| GET | `/api/v1/students/{id}` | Admin, User | Get single student |
+| GET | `/api/v1/students/search/{course}` | Admin, User | Search by course |
+| POST | `/api/v1/students` | Admin only | Create student |
+| PUT | `/api/v1/students/{id}` | Admin only | Update student |
+| DELETE | `/api/v1/students/{id}` | Admin only | Delete student |
+
+---
+
+## Project Structure
+```
+student-api/
+├── main.py            → App entry point
+├── database.py        → MongoDB connection
+├── models.py          → Pydantic models
+├── routes.py          → Student CRUD routes
+├── auth.py            → JWT & role logic
+├── auth_routes.py     → Auth endpoints
+├── pagination.py      → Pagination & filter logic
+├── requirements.txt   → Dependencies
+├── .env               → Environment variables (not pushed)
+├── .gitignore         → Git ignore rules
+└── README.md          → Project documentation
+```
+## Pagination & Filtering
+
+The `GET /api/v1/students` endpoint supports the following query parameters:
+
+### Pagination
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `page` | int | 1 | Page number |
+| `per_page` | int | 10 | Students per page (max 100) |
+
+### Filtering
+
+| Parameter | Type | Description |
+|---|---|---|
+| `course` | string | Filter by course name |
+| `grade` | string | Filter by grade |
+| `min_age` | int | Minimum age |
+| `max_age` | int | Maximum age |
+| `search` | string | Search by name or email |
+
+### Sorting
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `sort_by` | string | name | Sort by: name, age, course, grade |
+| `order` | string | asc | Order: asc or desc |
+
+## Authentication Flow
+```
+1. Register  →  POST /api/v1/auth/register
+2. Login     →  POST /api/v1/auth/login  →  get access_token + refresh_token
+3. Request   →  Add header: Authorization: Bearer <access_token>
+4. Expired   →  POST /api/v1/auth/refresh  →  get new access_token
+5. Logout    →  POST /api/v1/auth/logout  →  token blacklisted
+```
+
+---
+## Future Improvements
+
+- [ ] Logging & Rate Limiting
+- [ ] Email Verification on Register
+- [ ] Password Reset via Email
+- [ ] Export Students to CSV/Excel
+- [ ] File Upload for Student Profile Photo
+- [ ] Unit Testing
+- [ ] Docker Support
+- [ ] Deploy to Railway/Render
+- [ ] CI/CD Pipeline
+
+---
+
+## Author
+
+**Mayur** — [github.com/pmayur1997](https://github.com/pmayur1997)
+
+---
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
