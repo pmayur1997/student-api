@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends , Query
+from fastapi import APIRouter, HTTPException, Depends , Query, Request
 from bson import ObjectId
 from database import student_collection
 from models import StudentModel, UpdateStudentModel
-from auth import get_current_user
-from auth import require_admin, require_user
+from auth import require_admin, require_user, get_current_user
 from pagination import paginate, build_filter_query
 from typing import Optional
+from limiter import check_limit
+from logger import logger
 
 router = APIRouter()
 
@@ -21,15 +22,18 @@ def format_student(student) -> dict:
 
 #CREATE — Admin Only
 @router.post("/students", status_code=201)
-def create_student(student: StudentModel, current_user: dict = Depends(require_admin)):
+async def create_student(request: Request,student: StudentModel, current_user: dict = Depends(require_admin)):
+    check_limit(request, "register", max_requests=5)
     if student_collection.find_one({"email": student.email}):
         raise HTTPException(status_code=400, detail="Email already registered")
     result = student_collection.insert_one(student.dict())
+    logger.info(f"Student created | id: {result.inserted_id} | by: {current_user['email']}")
     return {"message": "Student created", "id": str(result.inserted_id)}
 
 #GET ALL — Admin & user
 @router.get("/students")
-def get_all_students(
+async def get_all_students(
+    request: Request,
     # Pagination params
     page:     int = Query(default=1,  ge=1,   description="Page number"),
     per_page: int = Query(default=10, ge=1, le=100, description="Students per page"),
@@ -47,6 +51,7 @@ def get_all_students(
 
     current_user: dict = Depends(require_user)
     ):
+    check_limit(request, "getstudents", max_requests=100)
      # Build filter query
     query = build_filter_query(
         course=course,
@@ -81,7 +86,7 @@ def get_all_students(
         "sort_by": sort_by,
         "order":   order
     }
-    
+    logger.info(f"Students fetched | page: {page} | filters: {query} | by: {current_user['email']}")
     return {
         "message": "Students fetched",
         "requested_by": current_user["username"],
@@ -91,18 +96,21 @@ def get_all_students(
 
 #GET ONE — Admin and user
 @router.get("/students/{student_id}")
-def get_student(student_id: str, current_user: dict = Depends(require_user)):
+async def get_student(request: Request,student_id: str, current_user: dict = Depends(require_user)):
+    check_limit(request, "get_Student", max_requests=5)
     try:
         student = student_collection.find_one({"_id": ObjectId(student_id)})
     except:
         raise HTTPException(status_code=400, detail="Invalid ID format")
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
+    logger.info(f"Student fetched | id: {student_id} | by: {current_user['email']}")
     return {"message": "Student fetched", "data": format_student(student)}
 
 #UPDATE — Admin only
 @router.put("/students/{student_id}")
-def update_student(student_id: str, update_data: UpdateStudentModel, current_user: dict = Depends(require_admin)):
+async def update_student(request:Request, student_id: str, update_data: UpdateStudentModel, current_user: dict = Depends(require_admin)):
+    check_limit(request, "update_student", max_requests=20)
     update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
     if not update_fields:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -114,29 +122,35 @@ def update_student(student_id: str, update_data: UpdateStudentModel, current_use
         raise HTTPException(status_code=400, detail="Invalid ID format")
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Student not found")
+    logger.info(f"Student updated | id: {student_id} | by: {current_user['email']}")
     return {"message": "Student updated by admin {current_user['username']}"}
 
 #DELETE — Admin
 @router.delete("/students/{student_id}")
-def delete_student(student_id: str, current_user: dict = Depends(require_admin)):
+async def delete_student(request:Request, student_id: str, current_user: dict = Depends(require_admin)):
+    check_limit(request, "delete_student", max_requests=10)
     try:
         result = student_collection.delete_one({"_id": ObjectId(student_id)})
     except:
         raise HTTPException(status_code=400, detail="Invalid ID format")
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Student not found")
+    logger.info(f"Student deleted | id: {student_id} | by: {current_user['email']}")
     return {"message": "Student deleted by admin {current_user['username']}"}
 
 #SEARCH — Admin and User
 @router.get("/students/search/{course}")
 def search_by_course(
+    request: Request,
     course: str,
     page:     int = Query(default=1,  ge=1),
     per_page: int = Query(default=10, ge=1, le=100),
     current_user: dict = Depends(require_user)
     ):
+    check_limit(request, "search_students", max_requests=5)
     students = list(student_collection.find({"course": {"$regex": course, "$options": "i"}}))
     result = [format_student(s) for s in students]
     if not result:
         raise HTTPException(status_code=404, detail="No students found")
+    logger.info(f"Search by course | course: {course} | by: {current_user['email']}")
     return paginate(result,page,per_page)

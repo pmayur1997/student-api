@@ -113,6 +113,52 @@ The `GET /api/v1/students` endpoint supports the following query parameters:
 | `sort_by` | string | name | Sort by: name, age, course, grade |
 | `order` | string | asc | Order: asc or desc |
 
+## Logging
+Logging is handled by **Loguru** with two separate log files:
+
+### Log files
+
+| File | Level | Content |
+|---|---|---|
+| `logs/app.log` | INFO and above | All requests, responses, login attempts, rate limits |
+| `logs/error.log` | ERROR and above | Unhandled exceptions, database errors, server crashes |
+
+### Log rotation
+
+| File | Rotation | Retention | Compression |
+|------|----------|-----------|-------------|
+| `app.log` | Every day | 7 days | zip |
+| `error.log` | Every week | 1 month | zip |
+
+
+### What gets logged where
+
+| Scenario | app.log | error.log |
+|----------|---------|-----------|
+| Successful login | ✅ | ❌ |
+| Wrong password | ✅ | ❌ |
+| Rate limit hit | ✅ | ❌ |
+| Token expired | ✅ | ❌ |
+| MongoDB crashes | ✅ | ✅ |
+| Unhandled exception | ✅ | ✅ |
+| Invalid JWT format | ✅ | ✅ |
+| Server startup error | ✅ | ✅ |
+
+### Rate Limits Summary
+| Endpoint | Limit |
+|---|---|
+| Register | 5/minute |
+| Login | 5/minute (brute force protection) |
+| Refresh token | 10/minute |
+| Logout | 10/minute |
+| Get all students | 100/minute |
+| Get single student | 100/minute |
+| Create student | 20/minute |
+| Update student | 20/minute |
+| Delete student | 10/minute |
+| Search | 50/minute |
+
+
 ## Authentication Flow
 ```
 1. Register  →  POST /api/v1/auth/register
@@ -124,8 +170,6 @@ The `GET /api/v1/students` endpoint supports the following query parameters:
 
 ---
 ## Future Improvements
-
-- [ ] Logging & Rate Limiting
 - [ ] Email Verification on Register
 - [ ] Password Reset via Email
 - [ ] Export Students to CSV/Excel
