@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from enum import Enum
 
@@ -49,3 +49,7 @@ class LoginModel(BaseModel):
 class TokenModel(BaseModel):
     access_token: str
     token_type: str
+
+# ── Resend Verification ──────────────────────────────────
+class ResendVerificationModel(BaseModel):
+    email : str

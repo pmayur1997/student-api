@@ -9,6 +9,8 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 - Sorting & Search
 - Active User Check
 - Error Handling
+- Rate Limiting and Logging.
+- Email Verification on Registration.
 
 ## Tech Stack
 | Technology | Purpose |
@@ -20,6 +22,7 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 | Bcrypt     | Password hashing |
 | Pydantic   | Data validation |
 | Python Dotenv | Environment variables |
+| SMTP Lib   | Email Sending(built-in)
 
 ## Installation
 
@@ -42,6 +45,12 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
    ALGORITHM=HS256
    ACCESS_TOKEN_EXPIRE_MINUTES=15
    REFRESH_TOKEN_EXPIRE_DAYS=7
+   # Gmail SMTP (for email verification)
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_EMAIL=your_gmail@gmail.com
+   SMTP_PASSWORD=your_16_char_app_password
+   APP_BASE_URL=http://localhost:8000
 
 5. Run the server
    uvicorn main:app --reload
@@ -55,10 +64,10 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 | POST | /api/v1/auth/login | Login user |
 | POST | /api/v1/auth/logout | Logout user |
 | GET  | /api/v1/auth/me | Get profile |
-
+| GET  | /api/v1/auth/verify-email | Verify email via token link | 
+| POST | /api/v1/auth//resend-verification | Resend Verification email |
 
 ### Student Routes (Protected)
-
 | Method | Endpoint | Role | Description |
 |---|---|---|---|
 | GET | `/api/v1/students` | Admin, User | Get all students |
@@ -170,7 +179,6 @@ Logging is handled by **Loguru** with two separate log files:
 
 ---
 ## Future Improvements
-- [ ] Email Verification on Register
 - [ ] Password Reset via Email
 - [ ] Export Students to CSV/Excel
 - [ ] File Upload for Student Profile Photo
