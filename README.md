@@ -12,6 +12,7 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 - Rate Limiting and Logging.
 - Email Verification on Registration.
 - Password Reset via Email.
+- Export Students & Users to CSV / Excel
 
 ## Tech Stack
 | Technology | Purpose |
@@ -23,7 +24,9 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 | Bcrypt     | Password hashing |
 | Pydantic   | Data validation |
 | Python Dotenv | Environment variables |
-| SMTP Lib   | Email Sending(built-in)
+| SMTP Lib   | Email Sending(built-in) |
+| Pandas     | Data Export (CSV & Excel)  |
+| OpenPyxl   | Excel file generation   |
 
 ## Installation
 
@@ -81,6 +84,14 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 | DELETE | `/api/v1/students/{id}` | Admin only | Delete student |
 
 ---
+### Export Routes(Protected)
+| Method | Endpoint | Role | Description |
+|--------|----------|---|---|
+| GET    | `/api/v1/export/students?format=csv` | Admin, User | Exports students as CSV|
+| GET | `/api/v1/export/students?format=excel` | Admin, User |Exports students as excel |
+| GEt | `/api/v1/export/users?format=csv` | Admin only | Exports students as CSV|
+| PUT | `/api/v1/export/users?format=excel` | Admin only |Exports students as excel |
+
 
 ## Project Structure
 ```
@@ -182,8 +193,6 @@ Logging is handled by **Loguru** with two separate log files:
 
 ---
 ## Future Improvements
-- [ ] Password Reset via Email
-- [ ] Export Students to CSV/Excel
 - [ ] File Upload for Student Profile Photo
 - [ ] Unit Testing
 - [ ] Docker Support
