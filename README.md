@@ -11,6 +11,7 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 - Error Handling
 - Rate Limiting and Logging.
 - Email Verification on Registration.
+- Password Reset via Email.
 
 ## Tech Stack
 | Technology | Purpose |
@@ -65,7 +66,9 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 | POST | /api/v1/auth/logout | Logout user |
 | GET  | /api/v1/auth/me | Get profile |
 | GET  | /api/v1/auth/verify-email | Verify email via token link | 
-| POST | /api/v1/auth//resend-verification | Resend Verification email |
+| POST | /api/v1/auth/resend-verification | Resend Verification email |
+| POST | /api/v1/auth/forgot-password     | Request Password Reset email|
+| POST | /api/v1/auth/reset-password      | Reset Password using token  |
 
 ### Student Routes (Protected)
 | Method | Endpoint | Role | Description |

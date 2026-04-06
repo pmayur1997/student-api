@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
-from database import user_collection,email_tokens_collection
-from models import RegisterModel, LoginModel
+from database import user_collection,email_tokens_collection, password_reset_collection
+from models import RegisterModel, LoginModel, ForgotPasswordModel, ResetPasswordModel
 from auth import (
     hash_password, verify_password, create_token, get_current_user,
-    decode_token,create_verification_token,send_verification_email)
+    decode_token,create_verification_token,send_verification_email,send_password_reset_email)
 from datetime import datetime, UTC , timedelta
 from limiter import check_limit
 from logger import logger
@@ -106,6 +106,64 @@ async def resend_verification(request:Request, email:str):
     logger.info(f"Verification email resent | email: {email}")
     return {"message": "If that email is registered, a verification link has been sent."}
 
+#Forgot Password
+@router.post("/forgot-password")
+async def forgotpassword(request: Request, body: ForgotPasswordModel):
+    check_limit(request, "forgot_password", max_requests=5)
+    logger.info(f"Password reset requested | email:{body.email}")
+
+    user = user_collection.find_one({"email":body.email})
+    if not user:
+        logger.info(f"User not found | email: {body.email}")
+        return {"message": "If that email is registered, a verification link has been sent."}
+    password_reset_collection.update_many(
+        {"user_id": user["_id"], "used": False},
+        {"$set": {"used": True}}
+    )
+
+    #Create a new token expires in 15 mins.
+    token = create_verification_token()
+    expires = datetime.utcnow() + timedelta(minutes=15)
+    password_reset_collection.insert_one(
+        {
+            "user_id": user["_id"],
+            "token": token,
+            "expires_at" : expires,
+            "used": False
+        })
+    send_password_reset_email(body.email,token)
+    logger.info(f"Password reset email sent | email:{body.email} ")
+    return {"message": "If that email is registered, a verification link has been sent.",
+            "token":token}
+
+#Reset Password
+@router.post("/reset-password")
+async def reset_password(request: Request,body: ResetPasswordModel):
+    check_limit(request,"Reset_Password",max_requests=5)
+    token_record = password_reset_collection.find_one({"token":body.token})
+    if not token_record:
+        raise HTTPException(status_code=400,
+                            detail="Invalid or expired reset link")
+    if token_record.get("used"):
+        raise HTTPException(status_code=400,
+                            detail="The reset link has been used already. Please request a new one.")
+    if datetime.utcnow() > token_record["expires_at"]:
+        raise HTTPException(status_code=400,
+                            detail="Reset link has expired. Please request a new one.")
+    print(body)
+    # Update password
+    hashed = hash_password(body.new_password)
+    user_collection.update_one({
+        "_id": token_record["user_id"]},
+        {"$set":{"password":hashed} }
+    )
+    #Marked token as used
+    password_reset_collection.update_one({
+        "_id": token_record["user_id"]},
+        {"$set":{"used":True}}
+    )
+    logger.info(f"Password reset successful | user_id:{token_record['user_id']} ")
+    return {"message": "Password rest successfull. You can now log in with your new password."}    
 
 #LOGIN
 @router.post("/login")
