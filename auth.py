@@ -4,14 +4,20 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import user_collection
 from dotenv import load_dotenv
 from bson import ObjectId
-import bcrypt, jwt, os
+import bcrypt, jwt, os, smtplib, secrets
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
-
+SMTP_HOST = os.getenv("SMTP_HOST")
+SMTP_PORT = os.getenv("SMTP_PORT")
+SMTP_EMAIL    = os.getenv("SMTP_EMAIL")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+APP_BASE_URL = os.getenv("APP_BASE_URL")
 security = HTTPBearer()
 
 # ── Hash password ────────────────────────────────
@@ -37,6 +43,75 @@ def decode_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+#── Create a secure email verification token ────────────────────────
+def create_verification_token()->str:
+    return secrets.token_urlsafe(32)
+
+# ── Send verification email via Gmail SMTP ───────
+def send_verification_email(to_email: str, token: str):
+    verify_url = f"{APP_BASE_URL}/api/v1/auth/verify-email?token={token}"
+ 
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Verify your email — Student API"
+    message["From"]    = SMTP_EMAIL
+    message["To"]      = to_email
+ 
+    # Plain text fallback
+    text_body = f"""
+Hi,
+ 
+Please verify your email address by clicking the link below:
+ 
+{verify_url}
+ 
+This link expires in 24 hours.
+ 
+If you did not register, ignore this email.
+"""
+ 
+    # HTML body
+    html_body = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 40px;">
+  <div style="max-width: 480px; margin: auto; background: white; border-radius: 8px; padding: 32px;">
+    <h2 style="color: #1a1a1a; margin-bottom: 8px;">Verify your email</h2>
+    <p style="color: #555; font-size: 15px; line-height: 1.6;">
+      Thanks for registering with the Student Management API.
+      Click the button below to verify your email address.
+    </p>
+    <a href="{verify_url}"
+       style="display: inline-block; margin: 24px 0; padding: 12px 28px;
+              background: #4f46e5; color: white; text-decoration: none;
+              border-radius: 6px; font-size: 15px; font-weight: 500;">
+      Verify Email
+    </a>
+    <p style="color: #999; font-size: 13px;">
+      This link expires in <strong>24 hours</strong>.<br>
+      If you did not register, you can safely ignore this email.
+    </p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+    <p style="color: #bbb; font-size: 12px;">Student Management API</p>
+  </div>
+</body>
+</html>
+"""
+ 
+    message.attach(MIMEText(text_body, "plain"))
+    message.attach(MIMEText(html_body, "html"))
+ 
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, to_email, message.as_string())
+    except Exception as e:
+        # Don't block registration if email fails — log it instead
+        raise HTTPException(
+            status_code=500,
+            detail=f"Account created but failed to send verification email: {str(e)}"
+        )
 
 # ── Get current logged-in user (dependency) ──────
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
