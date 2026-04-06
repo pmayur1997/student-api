@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from logger import logger
 from routes import router as student_router
 from auth_routes import router as auth_router
+from export_routes import router as export_router
 import time
 
 app = FastAPI(
@@ -44,6 +45,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
 # Student routes (protected)
 app.include_router(student_router, prefix="/api/v1", tags=["Students"])
+#Export Data routes
+app.include_router(export_router,prefix="/api/v1/export",tags=["Export"])
 
 @app.get("/")
 def root():
