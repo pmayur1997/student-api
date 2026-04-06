@@ -53,3 +53,12 @@ class TokenModel(BaseModel):
 # ── Resend Verification ──────────────────────────────────
 class ResendVerificationModel(BaseModel):
     email : str
+
+# ── Forgot  Password ──────────────────────────────────
+class ForgotPasswordModel(BaseModel):
+    email : str
+
+# ── Reset Password ──────────────────────────────────
+class ResetPasswordModel(BaseModel):
+    new_password : str
+    token : str
