@@ -1,0 +1,44 @@
+version: "3.9"
+ 
+services:
+ 
+  # ── MongoDB ───────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: student_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: studentdb
+    networks:
+      - student_network
+ 
+  # ── FastAPI App ───────────────────────────────
+  app:
+    build: .
+    container_name: student_app
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+    depends_on:
+      - mongo
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - student_network
+ 
+# ── Volumes ───────────────────────────────────
+volumes:
+  mongo_data:
+ 
+# ── Network ───────────────────────────────────
+networks:
+  student_network:
+    driver: bridge
