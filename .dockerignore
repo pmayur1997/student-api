@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.env
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Docker & Deployment
+docker-compose.yml
+Dockerfile
+.dockerignore
+.railway/
+
+# Local Data & Logs
+# (Crucial: ignore these so local data doesn't overwrite container volumes)
+mongo_data/
+logs/
+
+# Mac/Windows System Files
+.DS_Store
+Thumbs.db
