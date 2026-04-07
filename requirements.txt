@@ -1,8 +1,6 @@
 #####pip freeze > requirements.txt
-```
-
 ####It will generate something like:
-```
+
 fastapi==0.110.0
 uvicorn==0.29.0
 pymongo==4.6.2
