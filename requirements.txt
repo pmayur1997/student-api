@@ -1,7 +1,7 @@
-pip freeze > requirements.txt
+#####pip freeze > requirements.txt
 ```
 
-It will generate something like:
+####It will generate something like:
 ```
 fastapi==0.110.0
 uvicorn==0.29.0
@@ -11,3 +11,7 @@ pydantic==2.6.4
 bcrypt==4.1.2
 pyjwt==2.8.0
 python-multipart==0.0.9
+loguru==0.7.2
+pandas==2.2.1
+openpyxl==3.1.2
+reportlab==4.1.0
