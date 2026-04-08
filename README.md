@@ -11,7 +11,7 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 - Error Handling
 - Rate Limiting and Logging.
 - Email Verification on Registration.
-- Password Reset via Email.
+- Password Reset via Email(Resend).
 - Export Students & Users to CSV / Excel
 
 ## Tech Stack
@@ -24,7 +24,7 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
 | Bcrypt     | Password hashing |
 | Pydantic   | Data validation |
 | Python Dotenv | Environment variables |
-| SMTP Lib   | Email Sending(built-in) |
+| SMTP Lib   | Resend |
 | Pandas     | Data Export (CSV & Excel)  |
 | OpenPyxl   | Excel file generation   |
 
@@ -49,11 +49,7 @@ A production-grade REST API built with FastAPI and MongoDB featuring JWT Authent
    ALGORITHM=HS256
    ACCESS_TOKEN_EXPIRE_MINUTES=15
    REFRESH_TOKEN_EXPIRE_DAYS=7
-   # Gmail SMTP (for email verification)
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_EMAIL=your_gmail@gmail.com
-   SMTP_PASSWORD=your_16_char_app_password
+   RESEND_API_KEY = your_api_key
    APP_BASE_URL=http://localhost:8000
 
 5. Run the server
@@ -195,8 +191,6 @@ Logging is handled by **Loguru** with two separate log files:
 ## Future Improvements
 - [ ] File Upload for Student Profile Photo
 - [ ] Unit Testing
-- [ ] Docker Support
-- [ ] Deploy to Railway/Render
 - [ ] CI/CD Pipeline
 
 ---

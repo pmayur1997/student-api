@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import user_collection
 from dotenv import load_dotenv
 from bson import ObjectId
-import bcrypt, jwt, os, smtplib, secrets
+import bcrypt, jwt, os, smtplib, secrets, resend
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -18,6 +18,7 @@ SMTP_PORT = os.getenv("SMTP_PORT")
 SMTP_EMAIL    = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 APP_BASE_URL = os.getenv("APP_BASE_URL")
+resend.api_key = os.environ.get("RESEND_API_KEY")
 security = HTTPBearer()
 
 # ── Hash password ────────────────────────────────
@@ -50,19 +51,28 @@ def create_verification_token()->str:
 
 #── Share SMTP Sender────────────────────────────────────────────────
 def send_email(to_email: str, subject: str, text_body: str, html_body: str ):
-    message = MIMEMultipart("alternative")
+    """message = MIMEMultipart("alternative")
     message["Subject"] = subject
     message["From"]    = SMTP_EMAIL
     message["To"]      = to_email
  
     message.attach(MIMEText(text_body, "plain"))
-    message.attach(MIMEText(html_body, "html"))
+    message.attach(MIMEText(html_body, "html"))"""
  
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+        email = resend.Emails.send({
+            "from": "Acme <onboarding@resend.dev>",  # Use your verified domain here
+            "to": [to_email],
+            "subject": subject,
+            "text":f"text_body",
+            "html": f"text_html",
+        })
+        return {"status": "success", "email_id": email["id"]}
+        """with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.starttls()
             server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, message.as_string())
+            server.sendmail(SMTP_EMAIL, to_email, message.as_string())"""
+        
     except Exception as e:
         raise HTTPException(
             status_code=500,
