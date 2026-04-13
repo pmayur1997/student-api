@@ -58,20 +58,15 @@ def send_email(to_email: str, subject: str, text_body: str, html_body: str ):
  
     message.attach(MIMEText(text_body, "plain"))
     message.attach(MIMEText(html_body, "html"))"""
- 
     try:
         email = resend.Emails.send({
             "from": "Acme <onboarding@resend.dev>",  # Use your verified domain here
             "to": [to_email],
             "subject": subject,
-            "text":f"text_body",
-            "html": f"text_html",
+            "text":text_body,
+            "html": html_body,
         })
         return {"status": "success", "email_id": email["id"]}
-        """with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, message.as_string())"""
         
     except Exception as e:
         raise HTTPException(
