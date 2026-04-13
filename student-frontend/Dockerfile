@@ -10,5 +10,5 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
-EXPOSE 80
+EXPOSE 8000
 CMD ["/start.sh"]
