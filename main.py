@@ -18,7 +18,7 @@ app.add_middleware(
         "http://localhost:8000",        # local backend
         "http://localhost:5173",        # vite preview
         "https://student-api-production-5b6d.up.railway.app/",  # production Frontend
-        "https://api-production-5b6d.up.railway.app/" # production Backend
+        #"https://api-production-5b6d.up.railway.app/" # production Backend
     ],
     allow_credentials=True,
     allow_methods=["*"],
