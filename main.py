@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from logger import logger
 from routes import router as student_router
 from auth_routes import router as auth_router
@@ -10,6 +11,17 @@ app = FastAPI(
     title="Student Management API",
     description="FastAPI + MongoDB + JWT + RBAC + Pagination + Logging + Rate Limiting",
     version="3.0.0"
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8000",        # local backend
+        "http://localhost:5173",        # vite preview
+        "https://student-api-production-5b6d.up.railway.app/",  # production
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 # ── Log every request ────────────────────────────
 @app.middleware("http")
