@@ -33,7 +33,13 @@ services:
       - ./logs:/app/logs
     networks:
       - student_network
- 
+  # ── React Frontend (Optional addition) ────────
+  frontend:
+    build: ./student-frontend # <--- Point this to your frontend folder
+    ports:
+      - "5173:5173"
+    networks:
+      - student_network
 # ── Volumes ───────────────────────────────────
 volumes:
   mongo_data:
